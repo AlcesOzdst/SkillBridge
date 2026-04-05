@@ -40,7 +40,7 @@ const getSkills = async (req, res) => {
       include: [{
         model: User,
         as: 'user', // Match the alias defined in index.js
-        attributes: ['name', 'department', 'year', 'bio']
+        attributes: ['_id', 'name', 'department', 'year', 'bio']
       }]
     });
     res.json(skills);
