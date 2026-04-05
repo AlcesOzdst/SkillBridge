@@ -1,35 +1,59 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import Navbar from './components/Navbar';
+import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 
-const Home = () => (
-  <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-    <h1 className="text-4xl font-extrabold text-brand-600 mb-4">Welcome to SkillBridge 🚀</h1>
-    <p className="text-lg text-gray-600 max-w-lg">
-      A peer-to-peer campus platform to exchange skills, schedule mentorship sessions, and earn reputation points.
-    </p>
-  </div>
-);
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import DashboardPage from './pages/DashboardPage';
+import ProfilePage from './pages/ProfilePage';
+import EditProfilePage from './pages/EditProfilePage';
+import SkillsPage from './pages/SkillsPage';
+import AddSkillPage from './pages/AddSkillPage';
+import RequestsPage from './pages/RequestsPage';
+import ReviewPage from './pages/ReviewPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        {/* Navbar placeholder */}
-        <nav className="bg-white shadow p-4 flex justify-between items-center">
-          <div className="text-2xl font-bold text-brand-600">SkillBridge</div>
-          <div className="space-x-4">
-            <button className="text-gray-600 hover:text-brand-600 border px-4 py-2 rounded-lg">Login</button>
-            <button className="bg-brand-600 text-white px-4 py-2 rounded-lg">Sign Up</button>
-          </div>
-        </nav>
-
-        <main className="flex-grow">
+    <AuthProvider>
+      <Router>
+        <Navbar />
+        <main>
           <Routes>
-            <Route path="/" element={<Home />} />
+            {/* Public */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/skills" element={<SkillsPage />} />
+            <Route path="/profile/:id" element={<ProfilePage />} />
+
+            {/* Protected — students */}
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+            <Route path="/profile/edit" element={<ProtectedRoute><EditProfilePage /></ProtectedRoute>} />
+            <Route path="/skills/add" element={<ProtectedRoute><AddSkillPage /></ProtectedRoute>} />
+            <Route path="/requests" element={<ProtectedRoute><RequestsPage /></ProtectedRoute>} />
+            <Route path="/review/:requestId" element={<ProtectedRoute><ReviewPage /></ProtectedRoute>} />
+
+            {/* Admin only */}
+            <Route path="/admin" element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
+
+            {/* 404 fallback */}
+            <Route path="*" element={
+              <div className="flex-center" style={{ minHeight: 'calc(100vh - 64px)', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ fontSize: '4rem' }}>🔍</div>
+                <h1 style={{ fontSize: '1.5rem' }}>Page not found</h1>
+                <a href="/" className="btn btn-primary">Go Home</a>
+              </div>
+            } />
           </Routes>
         </main>
-      </div>
-    </Router>
+      </Router>
+    </AuthProvider>
   );
 }
 
 export default App;
+
