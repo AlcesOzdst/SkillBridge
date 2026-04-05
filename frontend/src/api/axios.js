@@ -1,7 +1,8 @@
 import axios from 'axios';
 
+// Use the live production URL if deployed to Vercel, otherwise fallback to local Vite proxy
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
 });
 
 // Attach JWT token to every request automatically
