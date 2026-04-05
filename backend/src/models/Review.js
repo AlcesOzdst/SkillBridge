@@ -1,14 +1,34 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/db');
 
-const reviewSchema = new mongoose.Schema({
-  requestId: { type: mongoose.Schema.Types.ObjectId, ref: 'Request', required: true },
-  reviewerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  reviewedUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  rating: { type: Number, min: 1, max: 5, required: true },
-  feedback: { type: String }
+const Review = sequelize.define('Review', {
+  _id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
+  },
+  requestId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+  },
+  reviewerId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+  },
+  reviewedUserId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+  },
+  rating: {
+    type: DataTypes.INTEGER,
+    validate: { min: 1, max: 5 },
+    allowNull: false,
+  },
+  feedback: {
+    type: DataTypes.TEXT,
+  }
 }, {
   timestamps: true
 });
 
-const Review = mongoose.model('Review', reviewSchema);
 module.exports = Review;

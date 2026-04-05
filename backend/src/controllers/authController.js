@@ -1,4 +1,5 @@
-const User = require('../models/User');
+const { Op } = require('sequelize');
+const { User } = require('../models');
 const generateToken = require('../utils/generateToken');
 
 // Register a new user
@@ -6,7 +7,12 @@ const registerUser = async (req, res) => {
   const { name, email, prn, password, department, year } = req.body;
 
   try {
-    const userExists = await User.findOne({ $or: [{ email }, { prn }] });
+    const userExists = await User.findOne({
+      where: {
+        [Op.or]: [{ email }, { prn }]
+      }
+    });
+
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
     }
@@ -15,7 +21,7 @@ const registerUser = async (req, res) => {
       name,
       email,
       prn,
-      passwordHash: password, // Hashed in pre-save middleware
+      passwordHash: password, // Hashed in beforeSave hook
       department,
       year
     });
@@ -37,7 +43,7 @@ const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ where: { email } });
 
     if (user && (await user.matchPassword(password))) {
       res.json({

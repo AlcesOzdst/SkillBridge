@@ -1,10 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const connectDB = require('./config/db');
 
-// Load env vars
+// Load env vars first so they are available to imported files
 dotenv.config();
+
+const { connectDB } = require('./config/db');
 
 // Connect to database
 connectDB();

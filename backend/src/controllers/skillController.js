@@ -1,11 +1,12 @@
-const Skill = require('../models/Skill');
+const { Op } = require('sequelize');
+const { Skill, User } = require('../models');
 
 // Create new skill
 const createSkill = async (req, res) => {
   const { skillName, category, type, level, description, mode } = req.body;
 
   try {
-    const skill = new Skill({
+    const skill = await Skill.create({
       userId: req.user._id,
       skillName,
       category,
@@ -15,8 +16,7 @@ const createSkill = async (req, res) => {
       mode
     });
 
-    const createdSkill = await skill.save();
-    res.status(201).json(createdSkill);
+    res.status(201).json(skill);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -32,10 +32,17 @@ const getSkills = async (req, res) => {
     
     // Simple text search on skillName
     if (req.query.keyword) {
-      filters.skillName = { $regex: req.query.keyword, $options: 'i' };
+      filters.skillName = { [Op.substring]: req.query.keyword };
     }
 
-    const skills = await Skill.find(filters).populate('userId', 'name department year bio');
+    const skills = await Skill.findAll({
+      where: Object.keys(filters).length ? filters : undefined,
+      include: [{
+        model: User,
+        as: 'user', // Match the alias defined in index.js
+        attributes: ['name', 'department', 'year', 'bio']
+      }]
+    });
     res.json(skills);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -45,7 +52,7 @@ const getSkills = async (req, res) => {
 // Get user specific skills
 const getUserSkills = async (req, res) => {
   try {
-    const skills = await Skill.find({ userId: req.params.userId });
+    const skills = await Skill.findAll({ where: { userId: req.params.userId } });
     res.json(skills);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -55,11 +62,11 @@ const getUserSkills = async (req, res) => {
 // Update skill
 const updateSkill = async (req, res) => {
   try {
-    const skill = await Skill.findById(req.params.id);
+    const skill = await Skill.findByPk(req.params.id);
 
     if (skill) {
       // Check if this skill belongs to the user
-      if (skill.userId.toString() !== req.user._id.toString()) {
+      if (skill.userId !== req.user._id) {
          return res.status(401).json({ message: 'Not authorized to update this skill' });
       }
 
@@ -70,8 +77,8 @@ const updateSkill = async (req, res) => {
       skill.description = req.body.description || skill.description;
       skill.mode = req.body.mode || skill.mode;
 
-      const updatedSkill = await skill.save();
-      res.json(updatedSkill);
+      await skill.save();
+      res.json(skill);
     } else {
       res.status(404).json({ message: 'Skill not found' });
     }
@@ -83,14 +90,14 @@ const updateSkill = async (req, res) => {
 // Delete skill
 const deleteSkill = async (req, res) => {
   try {
-    const skill = await Skill.findById(req.params.id);
+    const skill = await Skill.findByPk(req.params.id);
 
     if (skill) {
-      if (skill.userId.toString() !== req.user._id.toString()) {
+      if (skill.userId !== req.user._id) {
          return res.status(401).json({ message: 'Not authorized to delete this skill' });
       }
       
-      await skill.deleteOne();
+      await skill.destroy();
       res.json({ message: 'Skill removed' });
     } else {
       res.status(404).json({ message: 'Skill not found' });

@@ -7,14 +7,20 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [tab, setTab] = useState('overview');
+  const [dbData, setDbData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [sRes, uRes] = await Promise.all([api.get('/admin/stats'), api.get('/admin/users')]);
+      const [sRes, uRes, dbRes] = await Promise.all([
+        api.get('/admin/stats'), 
+        api.get('/admin/users'),
+        api.get('/admin/database')
+      ]);
       setStats(sRes.data);
       setUsers(uRes.data);
+      setDbData(dbRes.data);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -36,9 +42,10 @@ export default function AdminDashboardPage() {
         <div className="page-title">Admin Dashboard</div>
         <p className="page-subtitle">Platform health, user management, and analytics.</p>
 
-        <div className="tabs" style={{ maxWidth: 360, marginBottom: '2rem' }}>
+        <div className="tabs" style={{ maxWidth: 420, marginBottom: '2rem' }}>
           <button className={`tab${tab === 'overview' ? ' active' : ''}`} onClick={() => setTab('overview')}>📊 Overview</button>
           <button className={`tab${tab === 'users' ? ' active' : ''}`} onClick={() => setTab('users')}>👥 Users</button>
+          <button className={`tab${tab === 'database' ? ' active' : ''}`} onClick={() => setTab('database')}>🗄️ Database</button>
         </div>
 
         {loading ? (
@@ -86,7 +93,7 @@ export default function AdminDashboardPage() {
               </div>
             )}
           </>
-        ) : (
+        ) : tab === 'users' ? (
           <div>
             <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
               {users.length} registered users
@@ -117,7 +124,44 @@ export default function AdminDashboardPage() {
               ))}
             </div>
           </div>
-        )}
+        ) : tab === 'database' ? (
+          <div>
+            <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+              Live SQL Database Schematic & Row Preview (Limit 10 per table)
+            </p>
+            {dbData.map(db => (
+              <div key={db.tableName} className="card" style={{ marginBottom: '2rem', overflowX: 'auto' }}>
+                <h3 style={{ marginBottom: '1rem', color: 'var(--color-brand-400)' }}>🗃️ {db.tableName}</h3>
+                {db.rows.length === 0 ? (
+                  <div style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>0 rows in set.</div>
+                ) : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-bg-glass)' }}>
+                        {Object.keys(db.rows[0]).map(col => (
+                          <th key={col} style={{ padding: '0.75rem', fontWeight: 600, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                            {col}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {db.rows.map((row, i) => (
+                        <tr key={i} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                          {Object.values(row).map((val, vi) => (
+                            <td key={vi} style={{ padding: '0.75rem', color: 'var(--color-text-primary)' }}>
+                              {val === null ? <span style={{ color: 'var(--color-text-muted)' }}>NULL</span> : typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
     </div>
   );

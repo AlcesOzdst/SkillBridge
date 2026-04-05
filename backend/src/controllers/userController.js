@@ -1,10 +1,12 @@
-const User = require('../models/User');
-const Skill = require('../models/Skill');
+const { Op } = require('sequelize');
+const { User, Skill } = require('../models');
 
 // Get user profile by ID
 const getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-passwordHash');
+    const user = await User.findByPk(req.params.id, {
+      attributes: { exclude: ['passwordHash'] }
+    });
     if (user) {
       res.json(user);
     } else {
@@ -18,7 +20,7 @@ const getUserProfile = async (req, res) => {
 // Update user profile
 const updateUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findByPk(req.user._id);
 
     if (user) {
       user.name = req.body.name || user.name;
@@ -33,20 +35,20 @@ const updateUserProfile = async (req, res) => {
         user.passwordHash = req.body.password;
       }
 
-      const updatedUser = await user.save();
+      await user.save();
 
       res.json({
-        _id: updatedUser._id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        department: updatedUser.department,
-        year: updatedUser.year,
-        bio: updatedUser.bio,
-        preferredMode: updatedUser.preferredMode,
-        availability: updatedUser.availability,
-        clubAffiliations: updatedUser.clubAffiliations,
-        reputationPoints: updatedUser.reputationPoints,
-        badges: updatedUser.badges,
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        department: user.department,
+        year: user.year,
+        bio: user.bio,
+        preferredMode: user.preferredMode,
+        availability: user.availability,
+        clubAffiliations: user.clubAffiliations,
+        reputationPoints: user.reputationPoints,
+        badges: user.badges,
       });
     } else {
       res.status(404).json({ message: 'User not found' });
@@ -64,32 +66,37 @@ const searchUsers = async (req, res) => {
 
     const skillFilter = { type: 'offered' };
     if (keyword) {
-      skillFilter.$or = [
-        { skillName: { $regex: keyword, $options: 'i' } },
-        { category: { $regex: keyword, $options: 'i' } },
-        { description: { $regex: keyword, $options: 'i' } },
+      skillFilter[Op.or] = [
+        { skillName: { [Op.substring]: keyword } },
+        { category: { [Op.substring]: keyword } },
+        { description: { [Op.substring]: keyword } },
       ];
     }
     if (mode) skillFilter.mode = mode;
 
-    const matchingSkills = await Skill.find(skillFilter).select('userId skillName category level mode');
+    const matchingSkills = await Skill.findAll({
+      where: skillFilter,
+      attributes: ['_id', 'userId', 'skillName', 'category', 'level', 'mode']
+    });
 
     // Get unique user IDs from matching skills
-    const userIds = [...new Set(matchingSkills.map(s => s.userId.toString()))];
+    const userIds = [...new Set(matchingSkills.map(s => s.userId))];
 
     // Build user filter
-    const userFilter = { _id: { $in: userIds }, role: 'student' };
-    if (department) userFilter.department = { $regex: department, $options: 'i' };
+    const userFilter = { _id: { [Op.in]: userIds }, role: 'student' };
+    if (department) userFilter.department = { [Op.substring]: department };
     if (year) userFilter.year = year;
 
-    const users = await User.find(userFilter)
-      .select('-passwordHash')
-      .sort({ reputationPoints: -1 });
+    const users = await User.findAll({
+      where: userFilter,
+      attributes: { exclude: ['passwordHash'] },
+      order: [['reputationPoints', 'DESC']]
+    });
 
     // Attach their offered skills to each user object
     const usersWithSkills = users.map(u => {
-      const skills = matchingSkills.filter(s => s.userId.toString() === u._id.toString());
-      return { ...u.toObject(), offeredSkills: skills };
+      const skills = matchingSkills.filter(s => s.userId === u._id);
+      return { ...u.toJSON(), offeredSkills: skills };
     });
 
     res.json(usersWithSkills);

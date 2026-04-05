@@ -1,15 +1,36 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/db');
 
-const requestSchema = new mongoose.Schema({
-  requesterId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  providerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  skillId: { type: mongoose.Schema.Types.ObjectId, ref: 'Skill', required: true },
-  message: { type: String },
-  preferredTime: { type: String },
-  status: { type: String, enum: ['pending', 'accepted', 'rejected', 'completed', 'cancelled'], default: 'pending' }
+const Request = sequelize.define('Request', {
+  _id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
+  },
+  requesterId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+  },
+  providerId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+  },
+  skillId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+  },
+  message: {
+    type: DataTypes.TEXT,
+  },
+  preferredTime: {
+    type: DataTypes.STRING,
+  },
+  status: {
+    type: DataTypes.ENUM('pending', 'accepted', 'rejected', 'completed', 'cancelled'),
+    defaultValue: 'pending',
+  }
 }, {
   timestamps: true
 });
 
-const Request = mongoose.model('Request', requestSchema);
 module.exports = Request;

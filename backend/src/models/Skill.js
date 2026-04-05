@@ -1,16 +1,39 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/db');
 
-const skillSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  skillName: { type: String, required: true },
-  category: { type: String, required: true },
-  type: { type: String, enum: ['offered', 'wanted'], required: true },
-  level: { type: String, enum: ['Beginner', 'Intermediate', 'Advanced'] },
-  description: { type: String },
-  mode: { type: String, enum: ['Online', 'Offline', 'Hybrid'] }
+const Skill = sequelize.define('Skill', {
+  _id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
+  },
+  userId: {
+    type: DataTypes.UUID,
+    allowNull: false,
+  },
+  skillName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  category: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  type: {
+    type: DataTypes.ENUM('offered', 'wanted'),
+    allowNull: false,
+  },
+  level: {
+    type: DataTypes.ENUM('Beginner', 'Intermediate', 'Advanced'),
+  },
+  description: {
+    type: DataTypes.TEXT,
+  },
+  mode: {
+    type: DataTypes.ENUM('Online', 'Offline', 'Hybrid'),
+  }
 }, {
   timestamps: true
 });
 
-const Skill = mongoose.model('Skill', skillSchema);
 module.exports = Skill;

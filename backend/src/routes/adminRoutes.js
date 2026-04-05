@@ -1,5 +1,5 @@
 const express = require('express');
-const { getStats, getAllUsers, deleteUser } = require('../controllers/adminController');
+const { getStats, getAllUsers, deleteUser, getDatabaseTables } = require('../controllers/adminController');
 const { protect, adminOnly } = require('../middlewares/authMiddleware');
 
 const router = express.Router();
@@ -10,5 +10,6 @@ router.use(protect, adminOnly);
 router.get('/stats', getStats);
 router.get('/users', getAllUsers);
 router.delete('/users/:id', deleteUser);
+router.get('/database', getDatabaseTables);
 
 module.exports = router;

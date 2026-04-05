@@ -1,6 +1,4 @@
-const Request = require('../models/Request');
-const User = require('../models/User');
-const Skill = require('../models/Skill');
+const { Request, User, Skill } = require('../models');
 
 // Send a session request
 const sendRequest = async (req, res) => {
@@ -8,24 +6,27 @@ const sendRequest = async (req, res) => {
 
   try {
     // Can't request yourself
-    if (req.user._id.toString() === providerId) {
+    if (req.user._id === providerId) {
       return res.status(400).json({ message: 'You cannot send a request to yourself' });
     }
 
     // Check provider + skill exist
-    const provider = await User.findById(providerId);
+    const provider = await User.findByPk(providerId);
     if (!provider) return res.status(404).json({ message: 'Provider not found' });
 
-    const skill = await Skill.findById(skillId);
+    const skill = await Skill.findByPk(skillId);
     if (!skill) return res.status(404).json({ message: 'Skill not found' });
 
     // Check for already pending request for same skill
     const existing = await Request.findOne({
-      requesterId: req.user._id,
-      providerId,
-      skillId,
-      status: 'pending',
+      where: {
+        requesterId: req.user._id,
+        providerId,
+        skillId,
+        status: 'pending',
+      }
     });
+
     if (existing) {
       return res.status(400).json({ message: 'You already have a pending request for this skill' });
     }
@@ -47,15 +48,23 @@ const sendRequest = async (req, res) => {
 // Get all requests for the current user (sent + received)
 const getMyRequests = async (req, res) => {
   try {
-    const sent = await Request.find({ requesterId: req.user._id })
-      .populate('providerId', 'name email department year profileImage reputationPoints badges')
-      .populate('skillId', 'skillName category level mode')
-      .sort({ createdAt: -1 });
+    const sent = await Request.findAll({
+      where: { requesterId: req.user._id },
+      include: [
+        { model: User, as: 'provider', attributes: ['name', 'email', 'department', 'year', 'profileImage', 'reputationPoints', 'badges'] },
+        { model: Skill, as: 'skill', attributes: ['skillName', 'category', 'level', 'mode'] }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
 
-    const received = await Request.find({ providerId: req.user._id })
-      .populate('requesterId', 'name email department year profileImage reputationPoints badges')
-      .populate('skillId', 'skillName category level mode')
-      .sort({ createdAt: -1 });
+    const received = await Request.findAll({
+      where: { providerId: req.user._id },
+      include: [
+        { model: User, as: 'requester', attributes: ['name', 'email', 'department', 'year', 'profileImage', 'reputationPoints', 'badges'] },
+        { model: Skill, as: 'skill', attributes: ['skillName', 'category', 'level', 'mode'] }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
 
     res.json({ sent, received });
   } catch (error) {
@@ -72,10 +81,10 @@ const respondToRequest = async (req, res) => {
   }
 
   try {
-    const request = await Request.findById(req.params.id);
+    const request = await Request.findByPk(req.params.id);
     if (!request) return res.status(404).json({ message: 'Request not found' });
 
-    if (request.providerId.toString() !== req.user._id.toString()) {
+    if (request.providerId !== req.user._id) {
       return res.status(403).json({ message: 'Not authorised to respond to this request' });
     }
 
@@ -94,10 +103,10 @@ const respondToRequest = async (req, res) => {
 // Mark request as completed (requester confirms session happened)
 const completeRequest = async (req, res) => {
   try {
-    const request = await Request.findById(req.params.id);
+    const request = await Request.findByPk(req.params.id);
     if (!request) return res.status(404).json({ message: 'Request not found' });
 
-    if (request.requesterId.toString() !== req.user._id.toString()) {
+    if (request.requesterId !== req.user._id) {
       return res.status(403).json({ message: 'Only the requester can mark a session as completed' });
     }
 
@@ -116,10 +125,10 @@ const completeRequest = async (req, res) => {
 // Cancel a request (requester only, while still pending)
 const cancelRequest = async (req, res) => {
   try {
-    const request = await Request.findById(req.params.id);
+    const request = await Request.findByPk(req.params.id);
     if (!request) return res.status(404).json({ message: 'Request not found' });
 
-    if (request.requesterId.toString() !== req.user._id.toString()) {
+    if (request.requesterId !== req.user._id) {
       return res.status(403).json({ message: 'Only the requester can cancel this request' });
     }
 
