@@ -15,7 +15,6 @@ const app = express();
 // Middleware
 app.use(cors({
   origin: process.env.FRONTEND_URL || '*', // Vercel Domain dynamically accepted here
-  credentials: true
 }));
 app.use(express.json());
 
