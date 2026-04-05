@@ -19,6 +19,9 @@ app.use(express.json());
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/skills', require('./routes/skillRoutes'));
+app.use('/api/requests', require('./routes/requestRoutes'));
+app.use('/api/reviews', require('./routes/reviewRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 app.get('/', (req, res) => {
   res.send('SkillBridge API is running...');
@@ -26,3 +29,4 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
