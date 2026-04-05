@@ -11,10 +11,13 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log(`MySQL Connected via Sequelize on host: ${process.env.DB_HOST}`);
     
-    // We require the index so models define associations, then sync
     require('../models');
     await sequelize.sync({ alter: true });
     console.log('Database schema synchronized');
+
+    // Inject advanced configurations (Academic requirements)
+    const injectAdvancedSQL = require('./advanced_sql');
+    await injectAdvancedSQL(sequelize);
   } catch (error) {
     console.error(`Error connecting to MySQL: ${error.message}`);
     process.exit(1);

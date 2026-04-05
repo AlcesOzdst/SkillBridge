@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import BadgeChip from '../components/BadgeChip';
@@ -22,6 +22,15 @@ export default function ProfilePage() {
   const [reqError, setReqError] = useState('');
 
   const isOwnProfile = me?._id === id;
+
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+
+  useEffect(() => {
+    if (searchParams.get('request') === 'true' && profile && !isOwnProfile) {
+      setReqModal(true);
+    }
+  }, [location.search, profile, isOwnProfile]);
 
   useEffect(() => {
     const fetch = async () => {

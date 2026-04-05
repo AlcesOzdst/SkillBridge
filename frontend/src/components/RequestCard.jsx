@@ -8,8 +8,8 @@ export default function RequestCard({ request, type, onUpdate }) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
-  const other = type === 'sent' ? request.providerId : request.requesterId;
-  const skill = request.skillId;
+  const other = type === 'sent' ? request.provider : request.requester;
+  const skill = request.skill;
   const initials = other?.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?';
 
   const action = async (endpoint) => {

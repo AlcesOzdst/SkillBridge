@@ -5,7 +5,7 @@ const LEVEL_COLORS = { Beginner: '#4ade80', Intermediate: '#fbbf24', Advanced: '
 const TYPE_COLORS  = { offered: '#2dd4bf', wanted: '#818cf8' };
 
 export default function SkillCard({ skill, showUser = true }) {
-  const user = skill.userId || {};
+  const user = skill.user || {};
 
   const initials = user.name
     ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -82,9 +82,16 @@ export default function SkillCard({ skill, showUser = true }) {
 
       {/* CTA */}
       {showUser && user._id && (
-        <Link to={`/profile/${user._id}`} className="btn btn-primary btn-sm" style={{ marginTop: 'auto', width: '100%' }}>
-          View Profile <ArrowRight size={14} />
-        </Link>
+        <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
+          <Link to={`/profile/${user._id}`} className="btn btn-ghost btn-sm" style={{ flex: 1, textAlign: 'center', border: '1px solid var(--color-border)' }}>
+            View Profile
+          </Link>
+          {skill.type === 'offered' && (
+            <Link to={`/profile/${user._id}?request=true`} className="btn btn-primary btn-sm" style={{ flex: 1, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+              Request <ArrowRight size={14} />
+            </Link>
+          )}
+        </div>
       )}
     </div>
   );

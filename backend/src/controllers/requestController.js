@@ -51,8 +51,8 @@ const getMyRequests = async (req, res) => {
     const sent = await Request.findAll({
       where: { requesterId: req.user._id },
       include: [
-        { model: User, as: 'provider', attributes: ['name', 'email', 'department', 'year', 'profileImage', 'reputationPoints', 'badges'] },
-        { model: Skill, as: 'skill', attributes: ['skillName', 'category', 'level', 'mode'] }
+        { model: User, as: 'provider', attributes: ['_id', 'name', 'email', 'department', 'year', 'profileImage', 'reputationPoints', 'badges'] },
+        { model: Skill, as: 'skill', attributes: ['_id', 'skillName', 'category', 'level', 'mode'] }
       ],
       order: [['createdAt', 'DESC']]
     });
@@ -60,8 +60,8 @@ const getMyRequests = async (req, res) => {
     const received = await Request.findAll({
       where: { providerId: req.user._id },
       include: [
-        { model: User, as: 'requester', attributes: ['name', 'email', 'department', 'year', 'profileImage', 'reputationPoints', 'badges'] },
-        { model: Skill, as: 'skill', attributes: ['skillName', 'category', 'level', 'mode'] }
+        { model: User, as: 'requester', attributes: ['_id', 'name', 'email', 'department', 'year', 'profileImage', 'reputationPoints', 'badges'] },
+        { model: Skill, as: 'skill', attributes: ['_id', 'skillName', 'category', 'level', 'mode'] }
       ],
       order: [['createdAt', 'DESC']]
     });
