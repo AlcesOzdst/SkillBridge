@@ -13,8 +13,21 @@ connectDB();
 const app = express();
 
 // Middleware
+const allowedOrigins = [
+  'https://skillbridges.dev',
+  'https://www.skillbridges.dev',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*', // Vercel Domain dynamically accepted here
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || origin.includes('vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 }));
 app.use(express.json());
 
