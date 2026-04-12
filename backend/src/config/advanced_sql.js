@@ -70,7 +70,61 @@ const injectAdvancedSQL = async (sequelize) => {
       END;
     `);
 
-    console.log('✅ Advanced SQL Structures Successfully Injected!');
+    // 5. Views for easier querying
+    console.log('Creating Views...');
+
+    // A. User Summary View (Joins with Average Rating)
+    await sequelize.query(`DROP VIEW IF EXISTS v_UserSummary;`);
+    await sequelize.query(`
+      CREATE VIEW v_UserSummary AS
+      SELECT 
+          _id, 
+          name, 
+          email, 
+          department, 
+          year, 
+          reputationPoints, 
+          GetAverageRating(_id) AS averageRating
+      FROM Users;
+    `);
+
+    // B. Skill Catalog View (Joins Skills with User/Provider info)
+    await sequelize.query(`DROP VIEW IF EXISTS v_SkillCatalog;`);
+    await sequelize.query(`
+      CREATE VIEW v_SkillCatalog AS
+      SELECT 
+          s._id AS skillId,
+          s.skillName,
+          s.category,
+          s.level,
+          s.type,
+          s.mode,
+          u.name AS providerName,
+          u.department AS providerDepartment
+      FROM Skills s
+      JOIN Users u ON s.userId = u._id;
+    `);
+
+    // C. Pending Requests View (Detailed summary for tracking)
+    await sequelize.query(`DROP VIEW IF EXISTS v_PendingSkillRequests;`);
+    await sequelize.query(`
+      CREATE VIEW v_PendingSkillRequests AS
+      SELECT 
+          r._id AS requestId,
+          r.status,
+          r.preferredTime,
+          requester.name AS requesterName,
+          provider.name AS providerName,
+          s.skillName,
+          s.mode
+      FROM Requests r
+      JOIN Users requester ON r.requesterId = requester._id
+      JOIN Users provider ON r.providerId = provider._id
+      JOIN Skills s ON r.skillId = s._id
+      WHERE r.status = 'pending';
+    `);
+
+    console.log('✅ Advanced SQL Structures (including Views) Successfully Injected!');
   } catch (error) {
     console.error('❌ Error injecting advanced SQL:', error);
   }
