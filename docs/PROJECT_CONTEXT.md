@@ -5,11 +5,13 @@
 ---
 
 ## 1. Project Purpose
+
 SkillBridge is a university-oriented peer-to-peer skill exchange and mentorship platform. Students list skills offered/wanted, discover peers, schedule sessions, leave reviews, and earn dynamic reputation badges. Administrators monitor metrics and inspect relational tables.
 
 ---
 
 ## 2. Technology Stack
+
 - **Frontend:** React 19 (`react`, `react-dom`), Vite 8, Tailwind CSS v4, `react-router-dom` v7, Axios, Lucide React.
 - **Backend:** Node.js, Express 5, Sequelize ORM v6, `mysql2`, JWT (`jsonwebtoken`), `bcryptjs`, CORS, Dotenv.
 - **Database:** MySQL 8.0+ (Relational schema with advanced native SQL constructs).
@@ -18,7 +20,8 @@ SkillBridge is a university-oriented peer-to-peer skill exchange and mentorship 
 ---
 
 ## 3. Repository Structure & Key Paths
-```
+
+```text
 SkillBridge/
 ├── render.yaml                     # Render Blueprint (Web service + Static site)
 ├── backend/
@@ -50,6 +53,7 @@ SkillBridge/
 ---
 
 ## 4. Architecture & Data Flow
+
 1. **Client -> API:** Frontend requests invoke `api` (Axios) which prepends `/api` and attaches `Authorization: Bearer <token>`.
 2. **Routing & Auth:** Express routes authenticate JWT via `protect` middleware, attaching `req.user`.
 3. **ORM & Native SQL:** Queries execute through Sequelize models or raw SQL views.
@@ -58,6 +62,7 @@ SkillBridge/
 ---
 
 ## 5. Database Requirements & SQL Constraints
+
 - **Engine:** MySQL 8.0+ strictly required. Do not migrate to PostgreSQL or MongoDB.
 - **Hosting Constraint:** Render does not provide managed MySQL. An external provider must be used (e.g., Aiven, AWS RDS, DigitalOcean, Railway, Clever Cloud).
 - **Incompatible Providers:** Serverless engines like PlanetScale are incompatible due to lack of standard foreign keys, triggers, and stored procedures.
@@ -67,6 +72,7 @@ SkillBridge/
 ---
 
 ## 6. Environment Variables
+
 | Variable | Service | Required | Purpose |
 |---|---|---|---|
 | `NODE_ENV` | Backend | Yes | `production` or `development` |
@@ -85,6 +91,7 @@ SkillBridge/
 ---
 
 ## 7. Deployment Decisions
+
 - **Render Blueprint:** Configured in root `render.yaml` with two services:
   1. `skillbridge-backend`: Web Service (`runtime: node`), free plan, root `backend/`, health check `/api/health`.
   2. `skillbridge-frontend`: Static Site (`runtime: static`), free plan, root `frontend/`, publish path `./dist`, SPA rewrite `/* -> /index.html`.
@@ -94,13 +101,16 @@ SkillBridge/
 ---
 
 ## 8. Current Branch & PR Status
+
 - **Base Branch:** `main`
 - **Active Branch:** `deploy/render-blueprint`
-- **PR Status:** Prepared locally; submitted/ready against `main`.
+- **PR Status:** Open (Pending Review)
+- **PR URL:** [Pull Request #1](https://github.com/AlcesOzdst/SkillBridge/pull/1)
 
 ---
 
 ## 9. Verified Tests
+
 - **Backend Syntax Check:** Verified clean (`node -c` on all JS files in `backend/src`).
 - **SQL Verification Scripts:**
   - `verify_sql.js`: PASSED (Tested `UpdateReputationOnReview` trigger, `GetAverageRating` function, and `RecomputeAllReputations` cursor procedure).
@@ -111,6 +121,7 @@ SkillBridge/
 ---
 
 ## 10. Outstanding Issues & Risks
+
 - **External MySQL Dependency:** Users must provision external MySQL before deploying the backend.
 - **Cold Starts:** On Render free web tier, the backend spins down after inactivity (~50s boot delay on first hit).
 - **Managed MySQL Permissions:** Some cloud providers restrict routine creation without `SET GLOBAL log_bin_trust_function_creators = 1`.
@@ -118,6 +129,7 @@ SkillBridge/
 ---
 
 ## 11. Key Decisions & Rationale
+
 1. **Preserve Native SQL:** Retained academic triggers and cursors in `advanced_sql.js` rather than moving logic to Node.js.
 2. **Safe Production Sync:** Defaulted `sync({ alter: true })` to off in production to prevent runtime DDL deadlocks.
 3. **Axios Normalization:** Sanitized `VITE_API_URL` in `axios.js` to eliminate mismatches between root domain and `/api`.
@@ -125,6 +137,7 @@ SkillBridge/
 ---
 
 ## 12. Instructions for Future Agents
+
 1. Read `docs/PROJECT_CONTEXT.md` first.
 2. Check current Git branch and working tree state.
 3. Compare the memory with actual repository state.
