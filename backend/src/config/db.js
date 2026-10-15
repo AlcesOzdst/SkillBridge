@@ -45,6 +45,10 @@ const connectDB = async () => {
     // Inject advanced configurations (Academic requirements: Triggers, Procedures, Cursors, Views)
     const injectAdvancedSQL = require('./advanced_sql');
     await injectAdvancedSQL(sequelize);
+
+    // Seed default admin and test accounts if they do not exist
+    const seedDefaults = require('./seedDefaults');
+    await seedDefaults();
   } catch (error) {
     console.error(`Error connecting to MySQL: ${error.message}`);
     if (error.message && error.message.includes('ETIMEDOUT')) {
