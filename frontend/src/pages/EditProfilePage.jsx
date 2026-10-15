@@ -8,7 +8,7 @@ const YEARS = ['First Year', 'Second Year', 'Third Year', 'Final Year'];
 const MODES = ['Online', 'Offline', 'Hybrid'];
 
 export default function EditProfilePage() {
-  const { user, login } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     name: '', department: '', year: '', bio: '',

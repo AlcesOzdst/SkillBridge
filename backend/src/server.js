@@ -12,24 +12,60 @@ connectDB();
 
 const app = express();
 
-// Middleware
-const allowedOrigins = [
+// Configure CORS allowlist
+const configuredFrontends = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map(url => url.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
+const defaultOrigins = [
   'https://skillbridges.dev',
   'https://www.skillbridges.dev',
-  process.env.FRONTEND_URL
-].filter(Boolean);
+  ...configuredFrontends
+];
+
+if (process.env.NODE_ENV !== 'production') {
+  defaultOrigins.push(
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000'
+  );
+}
+
+const allowedOrigins = [...new Set(defaultOrigins)];
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || origin.includes('vercel.app')) {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    const isExplicitlyAllowed = allowedOrigins.includes(origin);
+    const isPlatformHosted = origin.endsWith('.onrender.com') || origin.endsWith('.vercel.app');
+
+    if (isExplicitlyAllowed || isPlatformHosted) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error(`Not allowed by CORS: ${origin}`));
     }
   },
   credentials: true
 }));
 app.use(express.json());
+
+// Health Check Endpoints (for Render and uptime monitoring)
+const healthCheckHandler = (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    service: 'skillbridge-api',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+};
+
+app.get('/health', healthCheckHandler);
+app.get('/api/health', healthCheckHandler);
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));

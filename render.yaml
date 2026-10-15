@@ -1,0 +1,67 @@
+# ==============================================================================
+# Render Blueprint Specification for SkillBridge
+# Docs: https://render.com/docs/blueprint-spec
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. SkillBridge Backend Web Service (Node.js + Express 5)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: skillbridge-backend
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "5000"
+      - key: JWT_SECRET
+        generateValue: true
+      # External MySQL Database Connection (Render does not host managed MySQL)
+      # Compatible providers: Aiven, DigitalOcean, Railway, AWS RDS, Clever Cloud
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_NAME
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      # Set to 'true' if your MySQL cloud provider requires TLS/SSL (e.g. Aiven, AWS RDS)
+      - key: DB_SSL
+        value: "false"
+      # In production, defaults to safe sync (CREATE TABLE IF NOT EXISTS without altering existing tables).
+      # Set to 'true' only if you explicitly want to run schema migration on boot.
+      - key: DB_SYNC_ALTER
+        value: "false"
+      # Allowed frontend origin for CORS (e.g. https://skillbridge-frontend.onrender.com)
+      - key: FRONTEND_URL
+        sync: false
+
+  # ----------------------------------------------------------------------------
+  # 2. SkillBridge Frontend Static Site (React 19 + Vite + Tailwind CSS 4)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: skillbridge-frontend
+    runtime: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    # Single Page Application (SPA) catch-all rewrite for React Router
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      # Production backend API URL (e.g. https://skillbridge-backend.onrender.com)
+      - key: VITE_API_URL
+        sync: false

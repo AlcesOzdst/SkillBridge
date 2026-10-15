@@ -20,7 +20,7 @@ export default function ReviewPage() {
         const found = res.data.sent.find(r => r._id === requestId);
         if (!found) setError('Request not found or not authorized.');
         else setRequest(found);
-      } catch (e) { setError('Could not load request.'); }
+      } catch { setError('Could not load request.'); }
       finally { setFetchLoading(false); }
     };
     fetch();

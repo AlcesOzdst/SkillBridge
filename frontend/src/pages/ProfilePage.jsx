@@ -24,9 +24,9 @@ export default function ProfilePage() {
   const isOwnProfile = me?._id === id;
 
   const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
     if (searchParams.get('request') === 'true' && profile && !isOwnProfile) {
       setReqModal(true);
     }
