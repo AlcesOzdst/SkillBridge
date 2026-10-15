@@ -52,7 +52,6 @@ services:
   - type: web
     name: skillbridge-frontend
     runtime: static
-    plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
