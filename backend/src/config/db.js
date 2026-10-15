@@ -19,9 +19,16 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
 });
 
 const connectDB = async () => {
+  const host = process.env.DB_HOST || 'localhost';
+  const port = Number(process.env.DB_PORT) || 3306;
+  const user = process.env.DB_USER || '(unset)';
+  const dbName = process.env.DB_NAME || '(unset)';
+
+  console.log(`Attempting MySQL connection to ${user}@${host}:${port}/${dbName} (SSL: ${useSSL})...`);
+
   try {
     await sequelize.authenticate();
-    console.log(`MySQL Connected via Sequelize on host: ${process.env.DB_HOST}`);
+    console.log(`MySQL Connected via Sequelize on host: ${host}:${port}`);
     
     require('../models');
 
@@ -40,6 +47,11 @@ const connectDB = async () => {
     await injectAdvancedSQL(sequelize);
   } catch (error) {
     console.error(`Error connecting to MySQL: ${error.message}`);
+    if (error.message && error.message.includes('ETIMEDOUT')) {
+      console.error(`⚠️  ETIMEDOUT Check: Could not reach host '${host}' on port '${port}'.`);
+      console.error(`   If using Railway MySQL: You must use the Public TCP Proxy (e.g. *.proxy.rlwy.net with its custom 5-digit port).`);
+      console.error(`   Do NOT use 'mysql.railway.internal', 'localhost', or port 3306 from external hosts.`);
+    }
     process.exit(1);
   }
 };
