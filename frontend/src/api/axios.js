@@ -1,8 +1,18 @@
 import axios from 'axios';
 
-// Use the live production URL if deployed to Vercel, otherwise fallback to local Vite proxy
+// Normalize API base URL:
+// - In local development without VITE_API_URL, fallback to '/api' (proxied via Vite).
+// - In production with VITE_API_URL (e.g. https://skillbridge-backend.onrender.com),
+//   strip trailing slashes and ensure /api is cleanly appended.
+const rawBaseURL = (import.meta.env.VITE_API_URL || '').trim();
+const baseURL = (() => {
+  if (!rawBaseURL) return '/api';
+  const clean = rawBaseURL.replace(/\/+$/, '');
+  return clean.endsWith('/api') ? clean : `${clean}/api`;
+})();
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL,
 });
 
 // Attach JWT token to every request automatically

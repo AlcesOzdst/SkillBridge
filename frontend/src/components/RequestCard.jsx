@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { Clock, CheckCircle, XCircle, Star } from 'lucide-react';
 
 export default function RequestCard({ request, type, onUpdate }) {
-  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const other = type === 'sent' ? request.provider : request.requester;
